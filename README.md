@@ -1,41 +1,38 @@
 # Brain Agriculture
 
-API para o desafio técnico de gerenciamento de produtores rurais.
+Aplicação fullstack desenvolvida para o teste técnico da Brain Agriculture. O projeto permite gerenciar produtores rurais, propriedades, safras e culturas, além de apresentar um dashboard com os dados cadastrados.
 
-## Funcionalidades
+## Tecnologias
 
-- CRUD de produtores rurais com validação de CPF e CNPJ;
-- propriedades rurais vinculadas aos produtores;
-- validação das áreas também garantida por constraint no PostgreSQL;
-- culturas plantadas por propriedade e safra;
-- dashboard com totais e agrupamentos por estado, cultura e uso do solo;
-- paginação e pesquisa de produtores;
-- logs estruturados com identificador e duração das requisições;
-- testes unitários e funcionais.
+### Frontend
 
-A especificação completa dos contratos está em
-[`backend/docs/openapi.yaml`](backend/docs/openapi.yaml).
+- React
+- TypeScript
+- Vite
+- Redux Toolkit
+- React Router
+- Emotion
+- Recharts
+- Jest e React Testing Library
 
-## Endpoints principais
+### Backend
 
-| Método | Endpoint | Descrição |
-| --- | --- | --- |
-| `GET` | `/health` | Saúde da API e do banco |
-| `GET/POST` | `/api/v1/producers` | Lista ou cadastra produtores |
-| `GET/PATCH/DELETE` | `/api/v1/producers/:id` | Consulta, altera ou exclui produtor |
-| `POST` | `/api/v1/producers/:producerId/farms` | Cadastra propriedade |
-| `GET/PATCH/DELETE` | `/api/v1/farms/:id` | Gerencia propriedade |
-| `POST` | `/api/v1/farms/:farmId/plantings` | Registra cultura e safra |
-| `DELETE` | `/api/v1/plantings/:id` | Remove plantio |
-| `GET` | `/api/v1/dashboard` | Retorna indicadores do dashboard |
+- Node.js
+- TypeScript
+- AdonisJS
+- Lucid ORM
+- VineJS
+- Japa
 
-## Ambiente de desenvolvimento com Docker
+### Infraestrutura
 
-### Requisitos
+- PostgreSQL
+- Docker
+- Docker Compose
 
-- Docker com Docker Compose
+## Como executar
 
-### Iniciar a aplicação
+É necessário ter o Docker com Docker Compose instalado.
 
 Na raiz do projeto, execute:
 
@@ -43,82 +40,50 @@ Na raiz do projeto, execute:
 docker compose up --build
 ```
 
-O comando inicia:
+O comando inicia o frontend, a API e o PostgreSQL. As migrations são executadas automaticamente durante a inicialização da API.
 
-- API AdonisJS em `http://localhost:3333`;
-- PostgreSQL em `localhost:5432`;
-- migrations pendentes antes da inicialização da API;
-- hot reload para alterações feitas no diretório `backend`.
+Após a inicialização, os serviços estarão disponíveis em:
 
-Para iniciar em segundo plano:
+- Frontend: `http://localhost:5173`
+- API: `http://localhost:3333`
+- PostgreSQL: `localhost:5432`
 
-```bash
-docker compose up --build -d
-```
-
-Para acompanhar os logs da API:
-
-```bash
-docker compose logs -f api
-```
-
-Para encerrar os containers sem apagar os dados:
+Para encerrar a aplicação:
 
 ```bash
 docker compose down
 ```
 
-O banco é mantido no volume Docker `postgres_data`. Para reiniciar o ambiente
-com um banco vazio, remova o volume explicitamente:
+## Seeds
 
-```bash
-docker compose down --volumes
-```
-
-> As credenciais e a chave presentes no Compose são exclusivas para o ambiente
-> local e devem ser substituídas em uma implantação real.
-
-### Dados de demonstração
-
-Para preencher o ambiente com produtores, propriedades, safras e culturas:
+Com os containers em execução, use o comando abaixo para popular o banco com dados de demonstração:
 
 ```bash
 docker compose exec api npm run seed
 ```
 
-O seed é idempotente: ele pode ser executado novamente sem duplicar os dados.
-Ele é restrito ao ambiente de desenvolvimento e inclui também um produtor sem
-propriedades, permitindo validar esse cenário de negócio.
+O seed pode ser executado novamente sem duplicar os dados.
 
-## Desenvolvimento sem o container da API
+## Endpoints
 
-Com Node.js 24 ou superior instalado, mantenha apenas o PostgreSQL no Docker:
+Todos os endpoints da aplicação utilizam o prefixo `/api/v1`, com exceção do health check.
 
-```bash
-docker compose up -d postgres
-cd backend
-npm install
-node ace migration:run
-npm run dev
-```
+| Método | Endpoint | Descrição |
+| --- | --- | --- |
+| `GET` | `/health` | Verifica a saúde da API e do banco |
+| `GET` | `/api/v1/producers` | Lista e pesquisa produtores |
+| `POST` | `/api/v1/producers` | Cadastra um produtor |
+| `GET` | `/api/v1/producers/:id` | Retorna um produtor e suas propriedades |
+| `PATCH` | `/api/v1/producers/:id` | Atualiza um produtor |
+| `DELETE` | `/api/v1/producers/:id` | Exclui um produtor |
+| `POST` | `/api/v1/producers/:producerId/farms` | Cadastra uma propriedade |
+| `GET` | `/api/v1/farms/:id` | Retorna uma propriedade |
+| `PATCH` | `/api/v1/farms/:id` | Atualiza uma propriedade |
+| `DELETE` | `/api/v1/farms/:id` | Exclui uma propriedade |
+| `POST` | `/api/v1/farms/:farmId/plantings` | Registra uma cultura em uma safra |
+| `DELETE` | `/api/v1/plantings/:id` | Exclui o registro de uma cultura |
+| `GET` | `/api/v1/catalogs/harvests` | Lista as safras cadastradas |
+| `GET` | `/api/v1/catalogs/crops` | Lista as culturas cadastradas |
+| `GET` | `/api/v1/dashboard` | Retorna os indicadores do dashboard |
 
-As variáveis esperadas pela aplicação estão documentadas em
-`backend/.env.example`.
-
-## Verificações
-
-Com a aplicação no Docker:
-
-```bash
-docker compose exec -e DB_DATABASE=brain_agriculture_test api npm test
-docker compose exec api npm run typecheck
-docker compose exec api npm run lint
-```
-
-Ou, com Node.js 24+ instalado, dentro de `backend`:
-
-```bash
-npm run typecheck
-npm run lint
-npm test
-```
+A especificação completa da API está disponível em [`backend/docs/openapi.yaml`](backend/docs/openapi.yaml).
