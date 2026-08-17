@@ -78,6 +78,18 @@ docker compose down --volumes
 > As credenciais e a chave presentes no Compose são exclusivas para o ambiente
 > local e devem ser substituídas em uma implantação real.
 
+### Dados de demonstração
+
+Para preencher o ambiente com produtores, propriedades, safras e culturas:
+
+```bash
+docker compose exec api npm run seed
+```
+
+O seed é idempotente: ele pode ser executado novamente sem duplicar os dados.
+Ele é restrito ao ambiente de desenvolvimento e inclui também um produtor sem
+propriedades, permitindo validar esse cenário de negócio.
+
 ## Desenvolvimento sem o container da API
 
 Com Node.js 24 ou superior instalado, mantenha apenas o PostgreSQL no Docker:
