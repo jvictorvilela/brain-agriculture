@@ -5,6 +5,12 @@
 
 export const controllers = {
   AccessTokens: () => import('#controllers/access_tokens_controller'),
+  Catalogs: () => import('#controllers/catalogs_controller'),
+  Dashboard: () => import('#controllers/dashboard_controller'),
+  Farms: () => import('#controllers/farms_controller'),
+  Health: () => import('#controllers/health_controller'),
   NewAccount: () => import('#controllers/new_account_controller'),
+  Plantings: () => import('#controllers/plantings_controller'),
   Profile: () => import('#controllers/profile_controller'),
+  RuralProducers: () => import('#controllers/rural_producers_controller'),
 }

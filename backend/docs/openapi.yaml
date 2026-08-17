@@ -1,0 +1,499 @@
+openapi: 3.1.0
+info:
+  title: Brain Agriculture API
+  version: 1.0.0
+  description: API REST para gerenciamento de produtores e propriedades rurais.
+servers:
+  - url: http://localhost:3333
+    description: Ambiente local
+tags:
+  - name: Health
+  - name: Producers
+  - name: Farms
+  - name: Plantings
+  - name: Catalogs
+  - name: Dashboard
+paths:
+  /health:
+    get:
+      tags: [Health]
+      summary: Verifica a API e a conexão com o banco
+      responses:
+        '200':
+          description: Aplicação saudável
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status, checks]
+                properties:
+                  status:
+                    type: string
+                    const: ok
+                  checks:
+                    type: object
+                    properties:
+                      database:
+                        type: string
+                        const: up
+  /api/v1/producers:
+    get:
+      tags: [Producers]
+      summary: Lista produtores rurais
+      parameters:
+        - name: page
+          in: query
+          schema: { type: integer, minimum: 1, default: 1 }
+        - name: perPage
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+        - name: search
+          in: query
+          description: Pesquisa por nome, CPF ou CNPJ
+          schema: { type: string }
+      responses:
+        '200':
+          description: Página de produtores
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, meta]
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/ProducerSummary' }
+                  meta: { $ref: '#/components/schemas/PaginationMeta' }
+    post:
+      tags: [Producers]
+      summary: Cadastra um produtor rural
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ProducerInput' }
+      responses:
+        '201':
+          description: Produtor criado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ProducerResponse' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /api/v1/producers/{id}:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    get:
+      tags: [Producers]
+      summary: Retorna um produtor, suas propriedades e seus plantios
+      responses:
+        '200':
+          description: Produtor encontrado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ProducerResponse' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    patch:
+      tags: [Producers]
+      summary: Atualiza parcialmente um produtor
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProducerPatch'
+      responses:
+        '200':
+          description: Produtor atualizado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ProducerResponse' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+    delete:
+      tags: [Producers]
+      summary: Exclui um produtor e suas propriedades
+      responses:
+        '204': { description: Produtor excluído }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /api/v1/producers/{producerId}/farms:
+    parameters:
+      - name: producerId
+        in: path
+        required: true
+        schema: { type: integer }
+    post:
+      tags: [Farms]
+      summary: Cadastra uma propriedade para um produtor
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/FarmInput' }
+      responses:
+        '201':
+          description: Propriedade criada
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/FarmResponse' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /api/v1/farms/{id}:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    get:
+      tags: [Farms]
+      summary: Retorna uma propriedade e seus plantios
+      responses:
+        '200':
+          description: Propriedade encontrada
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/FarmResponse' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    patch:
+      tags: [Farms]
+      summary: Atualiza parcialmente uma propriedade
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FarmPatch'
+      responses:
+        '200':
+          description: Propriedade atualizada
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/FarmResponse' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+    delete:
+      tags: [Farms]
+      summary: Exclui uma propriedade e seus plantios
+      responses:
+        '204': { description: Propriedade excluída }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /api/v1/farms/{farmId}/plantings:
+    parameters:
+      - name: farmId
+        in: path
+        required: true
+        schema: { type: integer }
+    post:
+      tags: [Plantings]
+      summary: Registra uma cultura em uma propriedade e safra
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PlantingInput' }
+      responses:
+        '201':
+          description: Plantio registrado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PlantingResponse' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /api/v1/plantings/{id}:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    delete:
+      tags: [Plantings]
+      summary: Exclui um plantio
+      responses:
+        '204': { description: Plantio excluído }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /api/v1/catalogs/harvests:
+    get:
+      tags: [Catalogs]
+      summary: Lista safras já registradas
+      responses:
+        '200':
+          description: Lista de safras
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CatalogResponse' }
+  /api/v1/catalogs/crops:
+    get:
+      tags: [Catalogs]
+      summary: Lista culturas já registradas
+      responses:
+        '200':
+          description: Lista de culturas
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CatalogResponse' }
+  /api/v1/dashboard:
+    get:
+      tags: [Dashboard]
+      summary: Retorna totais e dados dos gráficos
+      responses:
+        '200':
+          description: Indicadores consolidados
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/DashboardResponse' }
+components:
+  parameters:
+    Id:
+      name: id
+      in: path
+      required: true
+      schema: { type: integer }
+  responses:
+    NotFound:
+      description: Recurso não encontrado
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+    Conflict:
+      description: Recurso duplicado
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+    ValidationError:
+      description: Dados inválidos ou regra de negócio violada
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+  schemas:
+    ProducerInput:
+      type: object
+      required: [document, name]
+      properties:
+        document:
+          type: string
+          description: CPF ou CNPJ, com ou sem máscara
+          examples: ['529.982.247-25']
+        name:
+          type: string
+          minLength: 2
+          maxLength: 150
+    ProducerPatch:
+      type: object
+      minProperties: 1
+      properties:
+        document:
+          type: string
+          description: CPF ou CNPJ, com ou sem máscara
+        name:
+          type: string
+          minLength: 2
+          maxLength: 150
+    Producer:
+      allOf:
+        - $ref: '#/components/schemas/ProducerInput'
+        - type: object
+          required: [id, documentType, createdAt, updatedAt]
+          properties:
+            id: { type: integer }
+            documentType: { type: string, enum: [CPF, CNPJ] }
+            farms:
+              type: array
+              items: { $ref: '#/components/schemas/Farm' }
+            createdAt: { type: string, format: date-time }
+            updatedAt: { type: [string, 'null'], format: date-time }
+    ProducerSummary:
+      allOf:
+        - $ref: '#/components/schemas/Producer'
+        - type: object
+          required: [farmsCount]
+          properties:
+            farmsCount: { type: integer }
+    ProducerResponse:
+      type: object
+      required: [data]
+      properties:
+        data: { $ref: '#/components/schemas/Producer' }
+    FarmInput:
+      type: object
+      required: [name, city, state, totalArea, arableArea, vegetationArea]
+      properties:
+        name: { type: string, minLength: 2, maxLength: 150 }
+        city: { type: string, minLength: 2, maxLength: 100 }
+        state:
+          type: string
+          enum:
+            [
+              AC,
+              AL,
+              AP,
+              AM,
+              BA,
+              CE,
+              DF,
+              ES,
+              GO,
+              MA,
+              MT,
+              MS,
+              MG,
+              PA,
+              PB,
+              PR,
+              PE,
+              PI,
+              RJ,
+              RN,
+              RS,
+              RO,
+              RR,
+              SC,
+              SP,
+              SE,
+              TO,
+            ]
+        totalArea: { type: number, exclusiveMinimum: 0 }
+        arableArea: { type: number, minimum: 0 }
+        vegetationArea: { type: number, minimum: 0 }
+    FarmPatch:
+      type: object
+      minProperties: 1
+      properties:
+        name: { type: string, minLength: 2, maxLength: 150 }
+        city: { type: string, minLength: 2, maxLength: 100 }
+        state:
+          type: string
+          enum:
+            [
+              AC,
+              AL,
+              AP,
+              AM,
+              BA,
+              CE,
+              DF,
+              ES,
+              GO,
+              MA,
+              MT,
+              MS,
+              MG,
+              PA,
+              PB,
+              PR,
+              PE,
+              PI,
+              RJ,
+              RN,
+              RS,
+              RO,
+              RR,
+              SC,
+              SP,
+              SE,
+              TO,
+            ]
+        totalArea: { type: number, exclusiveMinimum: 0 }
+        arableArea: { type: number, minimum: 0 }
+        vegetationArea: { type: number, minimum: 0 }
+    Farm:
+      allOf:
+        - $ref: '#/components/schemas/FarmInput'
+        - type: object
+          required: [id, producerId, createdAt, updatedAt]
+          properties:
+            id: { type: integer }
+            producerId: { type: integer }
+            plantings:
+              type: array
+              items: { $ref: '#/components/schemas/Planting' }
+            createdAt: { type: string, format: date-time }
+            updatedAt: { type: [string, 'null'], format: date-time }
+    FarmResponse:
+      type: object
+      required: [data]
+      properties:
+        data: { $ref: '#/components/schemas/Farm' }
+    PlantingInput:
+      type: object
+      required: [harvest, crop]
+      properties:
+        harvest: { type: string, examples: ['Safra 2025/2026'] }
+        crop: { type: string, examples: [Soja] }
+    Planting:
+      type: object
+      required: [id, farmId, harvest, crop, createdAt, updatedAt]
+      properties:
+        id: { type: integer }
+        farmId: { type: integer }
+        harvest: { $ref: '#/components/schemas/CatalogItem' }
+        crop: { $ref: '#/components/schemas/CatalogItem' }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: [string, 'null'], format: date-time }
+    PlantingResponse:
+      type: object
+      required: [data]
+      properties:
+        data: { $ref: '#/components/schemas/Planting' }
+    CatalogItem:
+      type: object
+      required: [id, name]
+      properties:
+        id: { type: integer }
+        name: { type: string }
+    CatalogResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/CatalogItem' }
+    DashboardResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: object
+          required: [summary, charts]
+          properties:
+            summary:
+              type: object
+              required: [totalFarms, totalHectares]
+              properties:
+                totalFarms: { type: integer }
+                totalHectares: { type: number }
+            charts:
+              type: object
+              required: [farmsByState, crops, landUse]
+              properties:
+                farmsByState:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      state: { type: string }
+                      total: { type: integer }
+                crops:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      crop: { type: string }
+                      total: { type: integer }
+                landUse:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      type: { type: string }
+                      area: { type: number }
+    PaginationMeta:
+      type: object
+      additionalProperties: true
+    ErrorResponse:
+      type: object
+      required: [errors]
+      properties:
+        errors:
+          type: array
+          items:
+            type: object
+            required: [message]
+            properties:
+              code: { type: [string, 'null'] }
+              message: { type: string }

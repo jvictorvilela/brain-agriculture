@@ -9,6 +9,7 @@ services:
       - '5432:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init-test-database.sql:/docker-entrypoint-initdb.d/init-test-database.sql:ro
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U brain_agriculture -d brain_agriculture']
       interval: 5s
@@ -20,12 +21,13 @@ services:
       context: ./backend
       target: development
     command: >-
-      sh -c "node ace migration:run --force && npm run dev"
+      sh -c "node ace migration:run --force --no-schema-generate && npm run dev"
     environment:
       TZ: UTC
       PORT: 3333
       HOST: 0.0.0.0
       NODE_ENV: development
+      APP_NAME: Brain Agriculture API
       LOG_LEVEL: info
       APP_KEY: local-development-key-change-in-production
       APP_URL: http://localhost:3333

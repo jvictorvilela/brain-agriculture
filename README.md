@@ -2,6 +2,33 @@
 
 API para o desafio técnico de gerenciamento de produtores rurais.
 
+## Funcionalidades
+
+- CRUD de produtores rurais com validação de CPF e CNPJ;
+- propriedades rurais vinculadas aos produtores;
+- validação das áreas também garantida por constraint no PostgreSQL;
+- culturas plantadas por propriedade e safra;
+- dashboard com totais e agrupamentos por estado, cultura e uso do solo;
+- paginação e pesquisa de produtores;
+- logs estruturados com identificador e duração das requisições;
+- testes unitários e funcionais.
+
+A especificação completa dos contratos está em
+[`backend/docs/openapi.yaml`](backend/docs/openapi.yaml).
+
+## Endpoints principais
+
+| Método | Endpoint | Descrição |
+| --- | --- | --- |
+| `GET` | `/health` | Saúde da API e do banco |
+| `GET/POST` | `/api/v1/producers` | Lista ou cadastra produtores |
+| `GET/PATCH/DELETE` | `/api/v1/producers/:id` | Consulta, altera ou exclui produtor |
+| `POST` | `/api/v1/producers/:producerId/farms` | Cadastra propriedade |
+| `GET/PATCH/DELETE` | `/api/v1/farms/:id` | Gerencia propriedade |
+| `POST` | `/api/v1/farms/:farmId/plantings` | Registra cultura e safra |
+| `DELETE` | `/api/v1/plantings/:id` | Remove plantio |
+| `GET` | `/api/v1/dashboard` | Retorna indicadores do dashboard |
+
 ## Ambiente de desenvolvimento com Docker
 
 ### Requisitos
@@ -68,7 +95,15 @@ As variáveis esperadas pela aplicação estão documentadas em
 
 ## Verificações
 
-Dentro de `backend`:
+Com a aplicação no Docker:
+
+```bash
+docker compose exec -e DB_DATABASE=brain_agriculture_test api npm test
+docker compose exec api npm run typecheck
+docker compose exec api npm run lint
+```
+
+Ou, com Node.js 24+ instalado, dentro de `backend`:
 
 ```bash
 npm run typecheck
